@@ -1,10 +1,8 @@
 # Basys-3 Peripheral Development
-***
 ### What are we talking about here
 This is simply an open ended repository as I develop and test different interfaces for peripherals compatible with the Basys-3 FPGA development board. Should be some interesting stuff hopefully, but mostly used as refereces for myself and others trying to use different peripherals integrated into a larger project.
 
 ## Peripherals of Interest
-***
 I have some peripherals in mind, with some that I already have bought connectors for that can be immediately integrated into the Bsays-3 board via PMOD connectors. The current list of peripherals and/or respective components of interest are listed below:
 
 * VGA In/Out/Signal Generation
@@ -15,7 +13,6 @@ I have some peripherals in mind, with some that I already have bought connectors
 
 
 ## Projects in Mind
-***
 * VGA signal generation, purpose of which is "top secret" :)
 * VGA signal pass-through and modification. Can be used for a real-time image processing unit, video filter, video overlay,  and more
 * Interfacing with quick memory for a number of potential and existing projects
@@ -25,5 +22,4 @@ I have some peripherals in mind, with some that I already have bought connectors
 
 
 ## Language of Interest
-***
 For the time being I will be doing HDL development in VHDL. It is the language I am most confortable in, although Verilog may eventually make its way into this repository.
