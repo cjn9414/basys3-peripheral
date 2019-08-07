@@ -10,7 +10,7 @@
 -- Description: Creates a basic VGA signal output without inclusion of the color
 -- 						  components, as they will be more customizable and should be
 --						  placed in a separate file. Base Monitor Specs: 1440x900 @ 60Hz
---							Clock Speed: 106.47 MHz
+--						  Clock Speed: 106.47 MHz
 -- ----------------------------------------------------------------------------
 
 library IEEE;
@@ -29,17 +29,17 @@ end entity signal_generator;
 architecture oh_behav of signal_generator is
 	constant h_visible_area_end : integer := 1440;
 	constant h_front_porch_end  : integer := 1520;
-	constant h_sync_pulse_end	  : integer := 1672;
+	constant h_sync_pulse_end	: integer := 1672;
 	constant h_back_porch_end   : integer := 1904;
 	constant v_visible_area_end : integer := 900;
 	constant v_front_porch_end  : integer := 901;
-	constant v_sync_pulse_end	  : integer := 904;
+	constant v_sync_pulse_end	: integer := 904;
 	constant v_back_porch_end   : integer := 932;
-	signal int_h_counter				: std_logic_vector(10 downto 0) := (others => '0');
-	signal next_h								: std_logic_vector(10 downto 0);
-	signal next_v								: std_logic_vector(10 downto 0);
-	signal int_v_counter				: std_logic_vector(10 downto 0) := (others => '0');
-	constant int_one_vec					: std_logic_vector(10 downto 0) := x"00" & "001";
+	signal int_h_counter		: std_logic_vector(10 downto 0) := (others => '0');
+	signal next_h				: std_logic_vector(10 downto 0);
+	signal next_v				: std_logic_vector(10 downto 0);
+	signal int_v_counter		: std_logic_vector(10 downto 0) := (others => '0');
+	constant int_one_vec		: std_logic_vector(10 downto 0) := x"00" & "001";
 	type VGA_STATE is (VISIBLE, FRONT_PORCH, SYNC_PULSE, BACK_PORCH);
 	signal signal_state_h : VGA_STATE;
 	signal signal_state_v : VGA_STATE;
