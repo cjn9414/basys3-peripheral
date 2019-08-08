@@ -55,7 +55,6 @@ begin
 			else
 				o_blue <= color_off;
 			end if;
-			
 		end if;
 	end process clk_proc;
 end architecture oh_behav;
