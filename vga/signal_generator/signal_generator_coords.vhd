@@ -18,15 +18,14 @@ use IEEE.NUMERIC_STD.ALL;
 entity signal_generator_coords is
 	generic ( pol_x : std_logic := '0';
 	          pol_y : std_logic := '1';
-	          h_visible_area_end : integer := 1440;
-	          h_front_porch_end  : integer := 1520;
-	          h_sync_pulse_end	 : integer := 1672
-	          h_back_porch_end   : integer := 1904;
-	          v_visible_area_end : integer := 900;
+              h_visible_area_end : integer := 1440;
+              h_front_porch_end  : integer := 1520;
+              h_sync_pulse_end	: integer := 1672;
+              h_back_porch_end   : integer := 1904;
+              v_visible_area_end : integer := 900;
               v_front_porch_end  : integer := 901;
-	          v_sync_pulse_end	 : integer := 904;
-              v_back_porch_end   : integer := 932;
-	          );
+              v_sync_pulse_end	: integer := 904;
+              v_back_porch_end   : integer := 932);
 	port (
 		i_clk		: in  std_logic;
 		i_rst  		: in  std_logic;
@@ -37,14 +36,6 @@ entity signal_generator_coords is
 end entity signal_generator_coords;
 
 architecture oh_behav of signal_generator_coords is
-	constant h_visible_area_end : integer := 1440;
-	constant h_front_porch_end  : integer := 1520;
-	constant h_sync_pulse_end	: integer := 1672;
-	constant h_back_porch_end   : integer := 1904;
-	constant v_visible_area_end : integer := 900;
-	constant v_front_porch_end  : integer := 901;
-	constant v_sync_pulse_end	: integer := 904;
-	constant v_back_porch_end   : integer := 932;
 	signal int_h_counter		: std_logic_vector(10 downto 0) := (others => '0');
 	signal next_h				: std_logic_vector(10 downto 0);
 	signal next_v				: std_logic_vector(10 downto 0);
