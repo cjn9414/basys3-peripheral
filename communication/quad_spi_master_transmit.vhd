@@ -4,7 +4,7 @@
 -- Entity: quad_spi_master_transmit
 -- Architecture: behavioral
 -- Date Created: 7 August 2019
--- Date Modified: 7 August 2019
+-- Date Modified: 10 August 2019
 -- 
 -- VHDL '93
 -- Description: Master driver for QSPI protocol transmission. 
