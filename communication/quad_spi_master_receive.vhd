@@ -18,7 +18,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity quad_spi_master_receive is
 	generic ( cs_active_pol : std_logic := '0';					-- polarity of chip select line
-			  data_rx_bytes : integer := 1;						-- number of bytes in response from peripheral
+			  rx_data_bytes : integer := 1;						-- number of bytes in response from peripheral
 			  mode : std_logic_vector(1 downto 0));				-- *not currently integrated*
 	port (
 		i_clk     		: in std_logic;										-- quad spi clock
@@ -26,15 +26,15 @@ entity quad_spi_master_receive is
 		i_dq			: in std_logic_vector(3 downto 0);					-- data input from peripheral
 		i_en			: in std_logic;										-- enables receive part of transaction
 		o_cs 			: out std_logic;									-- chip select pin
-		o_data_out		: out std_logic_vector(8*data_rx_bytes-1 downto 0)	-- output data from device
+		o_data_out		: out std_logic_vector(8*rx_data_bytes-1 downto 0)	-- output data from device
 	);
 end quad_spi_master_receive;
 
 architecture oh_behav of quad_spi_master_receive is
 	signal r_nibble : std_logic_vector(1 downto 0) := (others => '0'); -- MSN or LSN in transaction
 	
-	signal r_peripheral_data : std_logic_vector(8*data_rx_bytes-1 downto 0);
-	signal r_rem_data_bytes : integer := data_rx_bytes;
+	signal r_peripheral_data : std_logic_vector(8*rx_data_bytes-1 downto 0);
+	signal r_rem_data_bytes : integer := rx_data_bytes;
 	constant byte_received : std_logic_vector(1 downto 0) := "10";
 	
 begin
