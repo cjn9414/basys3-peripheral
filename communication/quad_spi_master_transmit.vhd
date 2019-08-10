@@ -4,7 +4,7 @@
 -- Entity: quad_spi_master_transmit
 -- Architecture: behavioral
 -- Date Created: 7 August 2019
--- Date Modified: 7 August 2019
+-- Date Modified: 9 August 2019
 -- 
 -- VHDL '93
 -- Description: Master driver for QSPI protocol transmission. 
@@ -21,14 +21,14 @@ entity quad_spi_master_transmit is
 			  addr_bytes	: integer := 1; 					-- number of bytes for address
 			  data_bytes 	: integer := 1;					    -- number of bytes for sending data
 			  dummy_cycles  : integer := 10;					-- cycles after command transaction before data is sent from device
-			  mode : std_logic_vector(1 downto 0));			-- *not currently integrated*
+			  mode : std_logic_vector(1 downto 0));				-- *not currently integrated*
 	port (
 		i_clk     		: in std_logic;
 		i_rst			: in std_logic;										-- resets transaction
 		i_wr			: in std_logic;										-- '1' -> write, '0' -> read
 		i_command 		: in std_logic_vector(7 downto 0);					-- command sent to device
 		i_addr			: in std_logic_vector(8*addr_bytes-1 downto 0);		-- address to send command to
-		i_data			: in std_logic_vector(8*data_bytes-1 downto 0);	-- data to send to device
+		i_data			: in std_logic_vector(8*data_bytes-1 downto 0);		-- data to send to device
 		o_active_event 	: out std_logic;									-- transaction in progress
 		o_cs 			: out std_logic;
 		o_dq 			: out std_logic_vector(3 downto 0)
@@ -42,9 +42,9 @@ architecture oh_behav of quad_spi_master_transmit is
 	signal r_event_status : QSPI_STATE := IDLE;
 	signal r_next_event : QSPI_STATE := IDLE;
 	
-	signal r_rem_addr_bytes : integer := 0;
-	signal r_rem_data_bytes : integer := 0;
-	signal r_rem_dummy_cycles : integer := 0;
+	signal r_rem_addr_bytes : integer := addr_bytes;
+	signal r_rem_data_bytes : integer := data_bytes;
+	signal r_rem_dummy_cycles : integer := dummy_cycles;
 	constant byte_sent : std_logic_vector(1 downto 0) := "10";
 	
 begin
@@ -65,33 +65,34 @@ begin
 		if rising_edge(i_clk) then
 			case r_event_status is
 				when COMMAND =>
-					if r_nibble = byte_sent then -- second nibble just received
-						r_event_status <= ADDRESS;
+					if r_nibble(0) = '0' then
+						o_dq <= i_command(7 downto 4);
 					else
-						if r_nibble(0) = '0' then
-							o_dq <= i_command(7 downto 4);
-						else
-							o_dq <= i_command(3 downto 0);
-						end if;
-						r_nibble(1) <= '1';
-						r_nibble(0) <= not r_nibble(0);
+						o_dq <= i_command(3 downto 0);
 					end if;
 				when ADDRESS =>
-					if r_rem_addr_bytes = 0 then
-						r_event_status <= DATA;
+					if r_nibble = byte_sent then
+						r_rem_addr_bytes <= r_rem_addr_bytes - 1;
 					else
-						if r_nibble = byte_sent then
-							r_rem_addr_bytes <= r_rem_addr_bytes - 1;
+						if r_nibble(0) = '0' then
+							o_dq <= i_addr(8*r_rem_addr_bytes-1 downto 8*r_rem_addr_bytes-4);
 						else
-							if r_nibble(0) = '0' then
-								o_dq <= i_addr(7 downto 4);
-							else
-								o_dq <= i_addr(3 downto 0);
-							end if;
+							o_dq <= i_addr(8*r_rem_addr_bytes-5 downto 8*(r_rem_addr_bytes-1));
+						end if;
+					end if;
+				when DATA =>
+					if r_nibble = byte_sent then
+						r_rem_data_bytes <= r_rem_data_bytes - 1;
+					else
+						if r_nibble(0) = '0' then
+							o_dq <= i_data(8*r_rem_data_bytes-1 downto 8*r_rem_data_bytes-4);
+						else
+							o_dq <= i_data(8*r_rem_data_bytes-5 downto 8*(r_rem_data_bytes-1));
 						end if;
 					end if;
 				when DUMMY =>
-				when DATA =>
+					r_rem_dummy_cycles <= r_rem_dummy_cycles - 1;
+					o_dq <= (others => '0');
 				when others =>
 			end case;
 		else
@@ -110,7 +111,26 @@ begin
 				r_next_event <= COMMAND;
 			end if;
 		elsif r_event_status = ADDRESS then
-			if r_nibble = byte_sent and r_rem_addr_bytes = 0 then
+			if r_nibble = byte_sent then
+				if r_rem_addr_bytes = 0 then
+					if r_rem_data_bytes = 0 then
+						if r_rem_dummy_cycles = 0 then
+							r_next_event <= IDLE;
+						else
+							r_next_event <= DUMMY;
+						end if;
+					else
+						r_next_event <= DATA;
+					end if;
+				else
+					r_rem_addr_bytes <= r_rem_addr_bytes - 1;
+					r_next_event <= ADDRESS;
+				end if;
+			else
+				r_next_event <= ADDRESS;
+			end if;
+		elsif r_event_status = DATA then
+			if r_nibble = byte_sent then
 				if r_rem_data_bytes = 0 then
 					if r_rem_dummy_cycles = 0 then
 						r_next_event <= IDLE;
@@ -118,24 +138,20 @@ begin
 						r_next_event <= DUMMY;
 					end if;
 				else
+					r_rem_data_bytes <= r_rem_data_bytes - 1;
 					r_next_event <= DATA;
-				end if;
-			else
-				r_next_event <= ADDRESS;
-			end if;
-		elsif r_event_status = DATA then
-			if r_nibble = byte_sent and r_rem_data_bytes = 0 then
-				if r_rem_dummy_cycles = 0 then
-					r_next_event <= IDLE;
-				else
-					r_next_event <= DUMMY;
 				end if;
 			else
 				r_next_event <= DATA;
 			end if;
 		elsif r_event_status = DUMMY then
 			if r_nibble = byte_sent then
-				r_next_event <= IDLE;
+				if r_rem_dummy_cycles = 0 then
+					r_next_event <= IDLE;
+				else
+					r_rem_dummy_cycles <= r_rem_dummy_cycles - 1;
+					r_next_event <= DUMMY;
+				end if;
 			else
 				r_next_event <= DUMMY;
 			end if;
