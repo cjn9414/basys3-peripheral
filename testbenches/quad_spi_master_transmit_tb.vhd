@@ -47,50 +47,49 @@ architecture oh_behav of quad_spi_master_transmit_tb is
 			i_command : in std_logic_vector(7 downto 0);
 			i_addr    : in std_logic_vector(23 downto 0);
 			i_data	  : in std_logic_vector(7 downto 0);
-			signal o_byte	  : out std_logic_vector(7 downto 0)
+			signal o_nibble	  : out std_logic_vector(3 downto 0)
 		) is
 		begin
-			o_byte <= i_command;
-			
+			o_nibble <= i_command(7 downto 4);
 			wait for clk_period;
-			assert o_dq_tb = i_command(7 downto 4) and o_active_event = '1'
+			assert o_dq_tb = i_command(7 downto 4) and o_active_event_tb = '1'
 			report "command transmission error";
-			
+			o_nibble <= i_command(3 downto 0);			
 			wait for clk_period;
-			assert o_dq_tb = i_command(3 downto 0) and o_active_event = '1'
+			assert o_dq_tb = i_command(3 downto 0) and o_active_event_tb = '1'
 			report "command transmission error";
 			
 			for byte in addr_bytes downto 1 loop
-				o_byte <= i_addr(8*byte-1 downto 8*(byte-1));
+				o_nibble <= i_addr(8*byte-1 downto 8*byte-4);
 				wait for clk_period;
-				assert o_dq_tb = i_addr(8*byte-1 downto 8*byte-4) and o_active_event = '1'
+				assert o_dq_tb = i_addr(8*byte-1 downto 8*byte-4) and o_active_event_tb = '1'
 				report "address transmission error";
-				
+				o_nibble <= i_addr(8*byte-5 downto 8*(byte-1));				
 				wait for clk_period;
-				assert o_dq_tb = i_addr(8*byte-5 downto 8*(byte-1)) and o_active_event = '1'
+				assert o_dq_tb = i_addr(8*byte-5 downto 8*(byte-1)) and o_active_event_tb = '1'
 				report "address transmission error";
 			end loop;
 			
 			for byte in data_bytes downto 1 loop
-				o_byte <= i_data(8*byte-1 downto 8*(byte-1));
+				o_nibble <= i_data(8*byte-1 downto 8*byte-4);
 				wait for clk_period;
-				assert o_dq_tb = i_data(8*byte-1 downto 8*byte-4) and o_active_event = '1'
+				assert o_dq_tb = i_data(8*byte-1 downto 8*byte-4) and o_active_event_tb = '1'
 				report "data transmission error";
-				
+				o_nibble <= i_data(8*byte-5 downto 8*(byte-1));
 				wait for clk_period;
-				assert o_dq_tb = i_data(8*byte-5 downto 8*(byte-1)) and o_active_event = '1'
+				assert o_dq_tb = i_data(8*byte-5 downto 8*(byte-1)) and o_active_event_tb = '1'
 				report "data transmission error";
 			end loop;
 			
 			for byte in dummy_cycles downto 1 loop
-				o_byte <= (others => '0');
+				o_nibble <= (others => '0');
 				wait for clk_period;
-				assert o_dq_tb = (others => '0') and o_active_event = '1'
+				assert o_dq_tb = (o_dq_tb'range => '0') and o_active_event_tb = '1'
 				report "dummy wait error";
 			end loop;
 			
 			wait for clk_period;
-			assert o_dq_tb = (others => '0') and o_active_event = '0'
+			assert o_dq_tb = (o_dq_tb'range => '0') and o_active_event_tb = '0'
 			report "idle response error";
 		end procedure send_message_3b_addr_1b_data_10b_dummy;
 		
@@ -117,16 +116,16 @@ begin
 
 	test_proc : process is begin
        transmission <= '1';
-	   send_message_3b_addr_1b_data_10b_dummy(fast_read_command, x"C3FFE0", x"81", dq);
+	   send_message_3b_addr_1b_data_10b_dummy(fast_read_command, x"C3FFE0", x"81", o_dq_tb);
 	   transmission <= '0';
 	   wait for clk_period*4;
 	   transmission <= '1';
-	   send_message_3b_addr_1b_data_10b_dummy(fast_read_command, x"A5A5A5", x"FF", dq);
+	   send_message_3b_addr_1b_data_10b_dummy(fast_read_command, x"A5A5A5", x"FF", o_dq_tb);
 	   transmission <= '0';
 	   wait for clk_period*4;
 	   i_rst_tb <= '1';
 	   transmission <= '1';
-	   send_message_3b_addr_1b_data_10b_dummy(fast_read_command, x"999999", x"DB", dq);
+	   send_message_3b_addr_1b_data_10b_dummy(fast_read_command, x"999999", x"DB", o_dq_tb);
 	   transmission <= '0';
 	   
 	end process test_proc;
