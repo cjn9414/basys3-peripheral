@@ -33,24 +33,25 @@ architecture oh_behav of uart_test_tb is
 	signal rx_error : std_logic := '0';
 	signal tx_busy : std_logic := '0';
    
-	constant clk_period : time := 100 ns;
-	constant byte_send : std_logic_vector := "01000001";
-	constant byte_recv : std_logic_vector := "01010101";
+	constant clk_period : time := 271.27 ns;
+	constant uart_clk_period : time := clk_period * 16 * 2;
+	constant byte_send : std_logic_vector(7 downto 0) := "01000001";
+	constant byte_recv : std_logic_vector(7 downto 0) := "01010101";
 	
 begin
 	
-	UUT : entity work.mips_controller
+	UUT : entity work.uart_dev
 		port map( 
 			i_clk => clk,
 			i_rst_n => rst_n,
-			i_uart_rx => uart_rx,
-			i_uart_tx => uart_tx_par,
-			i_uart_tx_en => uart_tx_en,
-			o_char => char,
-			o_uart_tx => uart_tx_ser,
+			i_rx => uart_rx,
+			i_tx => uart_tx_par,
+			i_tx_en => uart_tx_en,
+			o_rx => char,
+			o_tx => uart_tx_ser,
 			o_rx_busy => rx_busy,
-			o_rx_error => rx_error,
-			o_tx_busy => tx_busy
+			o_rx_error => rx_error
+			--o_tx_busy => tx_busy
 			);
 	
 	clk_process : process is begin
@@ -64,28 +65,39 @@ begin
 		rst_n <= '1';
 		uart_tx_par <= "01000001";
 		uart_tx_en <= '0';
-		for i in byte_recv'length-1 downto 0 loop
+		uart_rx <= '1';
+	    wait for uart_clk_period;
+	    
+		uart_rx <= '0';   -- start bit
+		wait for uart_clk_period;
+		for i in byte_recv'range loop
 			uart_rx <= byte_recv(i);
-			wait for clk_period;
+			wait for uart_clk_period;
 		end loop;
 		
-		assert char = byte_recv
+		uart_rx <= '1';   -- parity bit
+		wait for uart_clk_period;
+		
+		uart_rx <= '1';   -- stop bit
+		wait for uart_clk_period;
+		
+		assert char = byte_recv and rx_error = '0'
 		report "Data receive failure.";
 		
 		uart_tx_en <= '1';
-		wait for clk_period;
+		wait for uart_clk_period;
 		uart_tx_en <= '0';
-		for i in byte_send'length-1 downto 0 loop
+		for i in byte_send'range loop
 			assert uart_tx_ser = byte_send(i)
 			report "Serial data transmission failure.";
-			wait for clk_period;
+			wait for uart_clk_period;
 		end loop;
 		
 		uart_tx_en <= '1';
-		for i in byte_send'length-1 downto 0 loop
+		for i in byte_send'range loop
 			assert uart_tx_ser = byte_send(i)
 			report "Serial data transmission failure.";
-			wait for clk_period;
+			wait for uart_clk_period;
 		end loop;
 		uart_tx_en <= '0';
 
