@@ -1,0 +1,18 @@
+READ STATUS REGISTER or FLAG STATUS REGISTER Command
+
+For quad SPI protocol, the command code is input on DQ[3:0], and is output on DQ[3:0].
+The operation is terminated by driving S# HIGH at any time during data output
+
+--------------------------------------------------------------------------------------------------------------------
+
+WRITE VOLATILE or ENHANCED VOLATILE CONFIGURATION REGISTER Command
+
+the WRITE ENABLE command must be executed to set the write enable latch bit to 1. S# is driven LOW and held LOW
+until the eighth bit of the last data byte has been latched in, after which it must be driven HIGH
+ 
+For quad SPI protocol, the command code is input on DQ[3:0], followed by the data bytes
+
+Because register bits are volatile, change to the bits is immediate. If S# is not drivenHIGH, the command is not executed,
+flag status register error bits are not set, and the write enable latch remains set to 1.
+Reserved bits are not affected by this command.
+

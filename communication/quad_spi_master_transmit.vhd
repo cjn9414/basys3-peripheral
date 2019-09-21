@@ -34,7 +34,7 @@ entity quad_spi_master_transmit is
 end quad_spi_master_transmit;
 
 architecture oh_behav of quad_spi_master_transmit is
-	signal r_nibble : std_logic_vector(1 downto 0) := (others => '0'); -- MSN or LSN in transaction
+	signal r_nibble : std_logic := '0';  -- MSN or LSN in transaction
 	type QSPI_STATE is (IDLE, COMMAND, ADDRESS, DATA, DUMMY);
 	
 	signal r_event_status : QSPI_STATE := IDLE;
@@ -43,7 +43,7 @@ architecture oh_behav of quad_spi_master_transmit is
 	signal r_rem_addr_bytes : integer := 0;
 	signal r_rem_data_bytes : integer := 0;
 	signal r_rem_dummy_cycles : integer := 0;
-	constant byte_sent : std_logic_vector(1 downto 0) := "10";
+	constant byte_sent : std_logic := '1';
 	
 begin
 	transaction_proc : process(i_clk, i_rst) is begin
@@ -55,7 +55,7 @@ begin
 		elsif rising_edge(i_clk) then
 			case r_event_status is
 				when COMMAND =>
-					if r_nibble(0) = '0' then
+					if r_nibble = '0' then
 						o_dq <= i_command(7 downto 4);
 					else
 						o_dq <= i_command(3 downto 0);
@@ -65,7 +65,7 @@ begin
 					if r_nibble = byte_sent then
 						r_rem_addr_bytes <= r_rem_addr_bytes - 1;
 					else
-						if r_nibble(0) = '0' then
+						if r_nibble = '0' then
 							o_dq <= i_addr(8*r_rem_addr_bytes-1 downto 8*r_rem_addr_bytes-4);
 						else
 							o_dq <= i_addr(8*r_rem_addr_bytes-5 downto 8*(r_rem_addr_bytes-1));
@@ -75,7 +75,7 @@ begin
 					if r_nibble = byte_sent then
 						r_rem_data_bytes <= r_rem_data_bytes - 1;
 					else
-						if r_nibble(0) = '0' then
+						if r_nibble = '0' then
 							o_dq <= i_data(8*r_rem_data_bytes-1 downto 8*r_rem_data_bytes-4);
 						else
 							o_dq <= i_data(8*r_rem_data_bytes-5 downto 8*(r_rem_data_bytes-1));
@@ -153,6 +153,8 @@ begin
 		end case;
 	end process next_state_proc;
 	
+	
+	
 	assign_event_proc : process(i_clk, i_rst) is begin
 		if i_rst = '1' then
 			r_event_status <= IDLE;
@@ -163,18 +165,11 @@ begin
 	
 	nibble_transmission_proc : process(i_clk, i_rst, r_event_status) is begin
 		if i_rst = '1' or r_event_status'event then
-			r_nibble <= (others => '0');
+			r_nibble <= '0';
+		elsif r_nibble = byte_sent then
+		    r_nibble <= '0';
 		elsif rising_edge(i_clk) then
-			if r_nibble = byte_sent then
-				r_nibble <= (others => '0');
-			else
-				if r_nibble(0) = '1' then
-					r_nibble(1) <= '1';
-				else
-					r_nibble(1) <= '0';
-				end if;
-				r_nibble(0) <= not r_nibble(0);
-			end if;
+            r_nibble <= not r_nibble;
 		end if;
 	end process nibble_transmission_proc;
 	
