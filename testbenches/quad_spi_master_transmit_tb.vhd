@@ -31,11 +31,8 @@ architecture oh_behav of quad_spi_master_transmit_tb is
 		signal i_addr_tb			: std_logic_vector(8*addr_bytes-1 downto 0) := (others => '0');		-- address to send command to
 		signal i_data_tb			: std_logic_vector(8*data_bytes-1 downto 0) := (others => '0');		-- data to send to device
 		signal o_active_event_tb 	: std_logic := '0';													-- transaction in progress
-		signal o_cs_tb 				: std_logic;
-		signal o_dq_tb 				: std_logic_vector(3 downto 0);
-		signal dq                   : std_logic_vector(3 downto 0);
-		
-	    signal transmission         : std_logic := '0';
+		signal o_dq_tb 				: std_logic_vector(3 downto 0) := (others => '0');		
+	    signal transmission_tb      : std_logic := '0';
 		
 		constant cs_active_pol : std_logic := '0';				-- polarity of chip select line
 		
@@ -103,7 +100,7 @@ begin
 				 o_active_event => o_active_event_tb, o_dq => o_dq_tb);
 
 	send_3_1_10_clk_proc : process is begin
-	   if transmission = '1' then
+	   if transmission_tb = '1' then
 	       wait for clk_period / 2;
 	       i_clk_tb <= '0';
 	       wait for clk_period / 2;
@@ -115,18 +112,18 @@ begin
 	end process send_3_1_10_clk_proc;
 
 	test_proc : process is begin
-       transmission <= '1';
+       transmission_tb <= '1';
 	   send_message_3b_addr_1b_data_10b_dummy(fast_read_command, x"C3FFE0", x"81", o_dq_tb);
-	   transmission <= '0';
+	   transmission_tb <= '0';
 	   wait for clk_period*4;
-	   transmission <= '1';
+	   transmission_tb <= '1';
 	   send_message_3b_addr_1b_data_10b_dummy(fast_read_command, x"A5A5A5", x"FF", o_dq_tb);
-	   transmission <= '0';
+	   transmission_tb <= '0';
 	   wait for clk_period*4;
 	   i_rst_tb <= '1';
-	   transmission <= '1';
+	   transmission_tb <= '1';
 	   send_message_3b_addr_1b_data_10b_dummy(fast_read_command, x"999999", x"DB", o_dq_tb);
-	   transmission <= '0';
+	   transmission_tb <= '0';
 	   
 	end process test_proc;
 	
