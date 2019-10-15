@@ -24,7 +24,7 @@ entity clock_divider is
 end entity clock_divider;
 
 architecture oh_behav of clock_divider is
-	signal r_count : integer range 0 to DIV - 1 := 0;
+	signal r_count : integer range 0 to DIV-1 := 0;
 begin
 	process ( i_clk ) is begin
 		if rising_edge ( i_clk ) then

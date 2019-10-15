@@ -43,10 +43,10 @@ architecture oh_behav of signal_generator_coords is
 	constant int_one_vec		: std_logic_vector(10 downto 0) := x"00" & "001";
 begin
 	h_adder : entity work.adder_n
-		generic map(N => 11)
+		generic map(WIDTH => 11)
 		port map(A => int_h_counter, B => int_one_vec, Y => next_h);
 	v_adder : entity work.adder_n
-		generic map(N => 11)
+		generic map(WIDTH => 11)
 		port map(A => int_v_counter, B => int_one_vec, Y => next_v);
 	
 
